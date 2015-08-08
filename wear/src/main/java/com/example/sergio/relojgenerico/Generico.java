@@ -27,6 +27,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -125,7 +126,6 @@ public class Generico extends CanvasWatchFaceService {
                     .build());
             Resources resources = Generico.this.getResources();
             mBackgroundPaint = new Paint();
-            //mBackgroundPaint.setColor(resources.getColor(R.color.digital_background));
 
             mTextPaint = new Paint();
             mTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
@@ -251,6 +251,7 @@ public class Generico extends CanvasWatchFaceService {
                     ? String.format("%d/%d", mTime.monthDay, mTime.month + 1)
                     : String.format("%s, %d de %s", diaSemana, mTime.monthDay, mes);
 
+            String bateriaReloj = getBatteryInfoWatch();
             float textSizeDate = resources.getDimension(R.dimen.digital_textDate_size);
             Paint mTextPaintDate = new Paint();
             if (mLowBitAmbient) {
@@ -259,6 +260,7 @@ public class Generico extends CanvasWatchFaceService {
             mTextPaintDate = createTextPaint(resources.getColor(R.color.digital_text));
             mTextPaintDate.setTextSize(textSizeDate);
             canvas.drawText(date, mXOffset - 16, mYOffset + 80, mTextPaintDate);
+            canvas.drawText(bateriaReloj, mXOffset - 16, mYOffset + 110, mTextPaintDate);
         }
 
         /**
@@ -279,5 +281,11 @@ public class Generico extends CanvasWatchFaceService {
         private boolean shouldTimerBeRunning() {
             return isVisible() && !isInAmbientMode();
         }
+    }
+    private String getBatteryInfoWatch(){
+        IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        Intent batteryStatus =  registerReceiver(null, iFilter);
+        float status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+        return Integer.toString(100 - Math.round(status)) + "%";
     }
 }
