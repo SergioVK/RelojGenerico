@@ -125,7 +125,7 @@ public class Generico extends CanvasWatchFaceService {
                     .build());
             Resources resources = Generico.this.getResources();
             mBackgroundPaint = new Paint();
-            mBackgroundPaint.setColor(resources.getColor(R.color.digital_background));
+            //mBackgroundPaint.setColor(resources.getColor(R.color.digital_background));
 
             mTextPaint = new Paint();
             mTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
