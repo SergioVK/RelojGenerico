@@ -34,7 +34,6 @@ import android.os.Message;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.Time;
-import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
@@ -58,6 +57,7 @@ public class Generico extends CanvasWatchFaceService {
      */
     private static final long INTERACTIVE_UPDATE_RATE_MS = TimeUnit.SECONDS.toMillis(1);
     private Bitmap mBackground;
+    private boolean isRound;
 
     @Override
     public Engine onCreateEngine() {
@@ -122,7 +122,7 @@ public class Generico extends CanvasWatchFaceService {
                     .setBackgroundVisibility(WatchFaceStyle.BACKGROUND_VISIBILITY_INTERRUPTIVE)
                     .setShowSystemUiTime(false)
                     .setHotwordIndicatorGravity(Gravity.BOTTOM | Gravity.RIGHT)
-                    .setStatusBarGravity(Gravity.TOP|Gravity.RIGHT)
+                    .setStatusBarGravity(Gravity.TOP | Gravity.RIGHT)
                     .build());
             Resources resources = Generico.this.getResources();
             mBackgroundPaint = new Paint();
@@ -189,7 +189,7 @@ public class Generico extends CanvasWatchFaceService {
 
             // Load resources that have alternate values for round watches.
             Resources resources = Generico.this.getResources();
-            boolean isRound = insets.isRound();
+            isRound = insets.isRound();
             mXOffset = resources.getDimension(isRound
                     ? R.dimen.digital_x_offset_round : R.dimen.digital_x_offset);
             float textSize = resources.getDimension(isRound
@@ -234,16 +234,14 @@ public class Generico extends CanvasWatchFaceService {
             if (!isInAmbientMode()) {
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inScaled = false;
-                mBackground = BitmapFactory.decodeResource(resources, R.drawable.vega320320, options);
+                mBackground = BitmapFactory.decodeResource(resources, R.drawable.escudo, options);
                 canvas.drawBitmap(mBackground, 0, 0, null);
             }
             // Draw H:MM in ambient mode or H:MM:SS in interactive mode.
             mTime.setToNow();
-            String text = mAmbient
-                    ? String.format("%d:%02d", mTime.hour, mTime.minute)
-                    : String.format("%d:%02d:%02d", mTime.hour, mTime.minute, mTime.second);
+            String text = String.format("%d:%02d", mTime.hour, mTime.minute);
 
-            canvas.drawText(text, mXOffset - 16, mYOffset + 50, mTextPaint);
+
             Calendar mCalendar = Calendar.getInstance();
             String mes = mCalendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault());
             String diaSemana = mCalendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.getDefault());
@@ -259,8 +257,15 @@ public class Generico extends CanvasWatchFaceService {
             }
             mTextPaintDate = createTextPaint(resources.getColor(R.color.digital_text));
             mTextPaintDate.setTextSize(textSizeDate);
-            canvas.drawText(date, mXOffset - 16, mYOffset + 80, mTextPaintDate);
-            canvas.drawText(bateriaReloj, mXOffset - 16, mYOffset + 110, mTextPaintDate);
+            if (isRound) {
+                canvas.drawText(text, mXOffset + 41, mYOffset + 65, mTextPaint);
+                canvas.drawText(date, mXOffset + 30, mYOffset + 290, mTextPaintDate);
+                canvas.drawText(bateriaReloj, mXOffset + 110, mYOffset + 310, mTextPaintDate);
+            } else {
+                canvas.drawText(text, mXOffset - 16, mYOffset + 50, mTextPaint);
+                canvas.drawText(date, mXOffset - 16, mYOffset + 270, mTextPaintDate);
+                canvas.drawText(bateriaReloj, mXOffset - 16, mYOffset + 250, mTextPaintDate);
+            }
         }
 
         /**
@@ -285,7 +290,7 @@ public class Generico extends CanvasWatchFaceService {
     private String getBatteryInfoWatch(){
         IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent batteryStatus =  registerReceiver(null, iFilter);
-        float status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-        return Integer.toString(100 - Math.round(status)) + "%";
+        float status = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        return Integer.toString(Math.round(status)) + "%";
     }
 }
